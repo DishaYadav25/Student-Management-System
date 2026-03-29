@@ -1,22 +1,39 @@
 <?php
 session_start();
 
-$conn = mysqli_connect("localhost","root","root","student_db");
+// Database connection
+$host = "localhost";
+$user = "root";
+$password = "root";
+$database = "student_db";
+$port = 3307;
 
-if(!$conn){
+// Correct connection
+$conn = mysqli_connect($host, $user, $password, $database);
+
+if (!$conn) {
     die("Connection failed: " . mysqli_connect_error());
 }
 
+// Get login form data
 $username = $_POST['username'];
-$password = $_POST['password'];
+$password_input = $_POST['password'];
 
-$sql = "SELECT * FROM login WHERE username='$username' AND password='$password'";
+// Check login credentials
+$sql = "SELECT * FROM users WHERE username='$username' AND password=MD5('$password_input')";
 $result = mysqli_query($conn, $sql);
 
-if(mysqli_num_rows($result) > 0){
-    $_SESSION['username'] = $username;
-    header("Location: home.php");
+if (mysqli_num_rows($result) == 1) {
+    $user = mysqli_fetch_assoc($result);
+    $_SESSION['user_id'] = $user['id'];
+    $_SESSION['username'] = $user['username'];
+    $_SESSION['role'] = $user['role'];
+
+    header("Location: dashboard.php");
+    exit();
 } else {
-    echo "<script>alert('Wrong Username or Password'); window.location='login.php';</script>";
+    echo "<script>alert('Invalid username or password'); window.location.href='login.php';</script>";
 }
+
+mysqli_close($conn);
 ?>
